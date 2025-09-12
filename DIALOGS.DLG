@@ -1,0 +1,32 @@
+DLGINCLUDE RCDATA DISCARDABLE
+BEGIN
+    "DIALOGS.H\0"
+END
+
+AboutBox DIALOG LOADONCALL MOVEABLE DISCARDABLE 30, 50, 160, 85
+STYLE DS_LOCALEDIT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Spider"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CTEXT           "Spider Demo 1.0", -1, 0, 5, 160, 8, NOT WS_GROUP
+    CTEXT	    "Copyright (C) 1994, Tim Roberts.", -1,
+    		    0, 47, 160, 9, NOT WS_GROUP
+    CTEXT	    "All rights reserved.", -1, 0, 56, 160, 8, NOT WS_GROUP
+    DEFPUSHBUTTON   "OK", IDOK, 60, 68, 32, 14, WS_GROUP
+END
+
+Preferences DIALOG 6, 18, 160, 100
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Spider Preferences"
+FONT 8, "MS Sans Serif"
+BEGIN
+    SCROLLBAR       SB_ROWS, 19, 24, 113, 9
+    LTEXT           "Number of full rows:", -1, 19, 12, 83, 8
+    SCROLLBAR       SB_COLUMNS, 19, 61, 113, 9
+    LTEXT           "Number of columns:", -1, 19, 49, 78, 8
+    EDITTEXT        EB_ROWS, 99, 10, 32, 12, ES_AUTOHSCROLL
+    EDITTEXT        EB_COLUMNS, 98, 46, 32, 12, ES_AUTOHSCROLL
+    PUSHBUTTON      "O&K", IDOK, 10, 80, 40, 14
+    PUSHBUTTON      "Cancel", IDCANCEL, 60, 80, 40, 14
+    PUSHBUTTON      "&Defaults", BN_DEFAULTS, 110, 80, 40, 14
+END

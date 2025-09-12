@@ -1,0 +1,31 @@
+# Makefile : Builds the spider application
+#
+# Usage:     NMAKE option (build res)
+#    or:     NMAKE clean  (erase all compiled files)
+#
+# option:    DEBUG=[0|1]  (DEBUG not defined is equivalent to DEBUG=0)
+
+APP     = spider
+OBJS	= spider.obj frame.obj
+CPU	= i386
+
+!include .\ntsample.mak
+
+CPPFLAGS	= $(CPPFLAGS) /MT
+
+goal:   $(APP).exe
+
+$(APP).exe:    $(OBJS) $(APP).def $(APP).res
+    $(LINK) @<<
+$(GUIFLAGS) -out:$(APP).exe $(OBJS) $(APP).res $(MFCLIB) $(GUILIBS)
+<<
+
+spider.obj:	spider.h frame.h
+
+frame.obj:	spider.h frame.h dialogs.h
+
+spider.res:	spider.rc
+
+spider.hlp: spider1.rtf spider2.rtf spider3.rtf spider4.rtf spider.hpj
+    hc31  spider
+

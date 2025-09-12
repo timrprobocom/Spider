@@ -1,0 +1,51 @@
+#
+# Makefile for spider sample application.
+#
+
+# DEBUG	= 1
+
+MFC	= safxcw
+
+!ifdef	DEBUG
+LND	= /CO
+CCD	= -G2 -Od -Zi
+!ifdef	TRACE
+CCD	= $(CCD) -D_DEBUG
+MFC	= $(MFC)d
+!endif
+!else
+CCD	= -G3 -Ox
+!endif
+
+LNOPTS	= /NOD/NOE/MAP$(LND)
+CCOPTS	= -c -W3 -AS -Gs -GA -GEs -Zp $(CCD)
+CC2OPTS = -c -f -W3 -AS
+
+# Here are the complete lists of objects and libraries.
+
+OBJS	= spider.obj frame.obj
+LIBS	= $(MFC) libw slibcew mmsystem commdlg shell
+
+SUFFIXES = cpp
+
+goal: spider.exe
+
+.c.obj:
+    cl $(CCOPTS) $*.c
+
+.cpp.obj:
+    cl $(CCOPTS) $*.cpp
+
+spider.obj:	spider.h frame.h
+
+frame.obj:	spider.h frame.h dialogs.h
+
+spider.res:	spider.rc
+    rc -r spider.rc
+
+spider.hlp: spider1.rtf spider2.rtf spider3.rtf spider4.rtf spider.hpj
+    hc31  spider
+
+spider.exe: $(OBJS) spider.def spider.res
+    link $(LNOPTS) $(OBJS),,,$(LIBS), spider.def
+    rc -30 spider.res

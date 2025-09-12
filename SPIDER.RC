@@ -1,0 +1,39 @@
+#include <windows.h>
+#include <afxres.h>
+#include "dialogs.h"
+
+
+AFX_IDI_STD_FRAME	icon	spider.ico
+
+MainMenu MENU
+{
+        POPUP	"&Game"
+	{
+		MENUITEM "&New game", BN_RESET
+		MENUITEM "&Deal", BN_DEAL
+		MENUITEM "Re&move", BN_REMOVE
+		MENUITEM SEPARATOR
+		MENUITEM "&Preferences...", IDM_PREFERENCES
+		MENUITEM SEPARATOR
+		MENUITEM "E&xit", IDM_EXIT
+	}
+
+	POPUP   "&Help"
+	{
+		MENUITEM "&About Spider...", IDM_ABOUT
+	}
+}
+
+MainAccelTable ACCELERATORS
+BEGIN
+  "D", BN_DEAL
+  "R", BN_REMOVE
+  "S", BN_RESET
+  "X", BN_EXIT
+  "D", BN_DEAL, VIRTKEY, ALT
+  "R", BN_REMOVE, VIRTKEY, ALT
+  "S", BN_RESET, VIRTKEY, ALT
+  "X", BN_EXIT, VIRTKEY, ALT
+END
+
+#include "dialogs.dlg"

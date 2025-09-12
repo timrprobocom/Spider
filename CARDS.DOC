@@ -1,0 +1,47 @@
+BOOL FAR PASCAL cdtInit(int FAR *pdxCard, int FAR *pdyCard)
+/*
+ * Parameters:
+ *	pdxCard, pdyCard
+ *			Far pointers to ints where card size will be placed
+ *
+ * Returns:
+ *	True when successful, False when it can't find one of the standard
+ *	bitmaps.
+ */
+
+BOOL FAR PASCAL cdtDrawExt(HDC hdc, int x, int y, int dx, int dy, 
+									int cd, int mode, DWORD rgbBgnd)
+/*
+ * Parameters:
+ *	hdc  	HDC to window to draw cards on
+ *	x, y	Where you'd like them
+ * dx,dy card extents
+ *	cd		Card to be drawn
+ *	mode	Way you want it drawn
+ *
+ * Returns:
+ *	True if card successfully drawn, False otherwise
+ */
+
+BOOL FAR PASCAL cdtDraw(HDC hdc, int x, int y, int cd, int mode, DWORD rgbBgnd)
+/*
+ * Parameters:
+ *	hdc		HDC to window to draw cards on
+ *	x, y	Where you'd like them
+ *	cd		Card to be drawn
+ *	mode	Way you want it drawn
+ *
+ * Returns:
+ *	True if card successfully drawn, False otherwise
+ */
+
+void FAR PASCAL cdtTerm()
+/*
+ * Free up space if it's time to do so.
+ *
+ * Parameters:
+ *	none
+ *
+ * Returns:
+ *	nothing
+ */

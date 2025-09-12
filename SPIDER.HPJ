@@ -1,0 +1,16 @@
+; This help project requires hc 3.1
+[OPTIONS]
+errorlog = spider.err
+compress = 0
+warning = 3
+report = 1
+
+[FILES]
+spider1.rtf
+spider2.rtf
+spider3.rtf
+spider4.rtf
+
+[CONFIG]
+BrowseButtons()
+
