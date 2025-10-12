@@ -13,7 +13,6 @@ class Card:
 
 Deals = 3
 SuitsRemoved = 0
-highlight = None
 
 BLACK = '\x1b[0;30m'
 RED = '\x1b[1;31m'
@@ -141,113 +140,123 @@ def UpdateDeals():
 
 #// END platform-specific stuff
 
-def SetupDeck():
-    deck = []
-    for i in range(104):
-        deck.append( Card( i // 26, i % 13 ) )
-    return deck
-
-
-def Shuffle( deck ):
-    return random.shuffle(deck)
-
 COLUMNS = [8, 7, 7, 8, 7, 7, 8, 7, 7, 8]
 
-def Deal( deck ):
+class Table:
+    deck = []
     columns = []
-    n = 0
-    for c in COLUMNS:
-        columns.append( deck[n:n+c] )
-        columns[-1][-1].exposed = True
-        n += c
-    return deck[n:], columns
+    highlight = None
 
-def FindTopOfSuit( columns, col ):
-    s = columns[col][-1].suit
-    n = len(columns[col])-1
-    while n > 0:
-        n -= 1
-        if columns[col][n].suit != s or not columns[col][n].exposed:
-            return n+1
-    return 0
+    def SetupDeck(self):
+        deck = []
+        for i in range(104):
+            deck.append( Card( i // 26, i % 13 ) )
+        self.deck = deck
+        return self
 
-def IsMoveValid( columns, fr, to ):
-    if fr is None or not columns[fr]:
-        return False
-    if not columns[to]:
-        return True
-    hi = FindTopOfSuit( columns, fr )
-    if columns[fr][-1].suit == columns[to][-1].suit:
-        return columns[fr][-1].rank < columns[to][-1].rank and \
-            (columns[fr][hi].rank >= columns[to][-1].rank - 1)
-    return columns[fr][hi].rank >= columns[to][-1].rank - 1
+    def Shuffle(self):
+        random.shuffle(self.deck)
+        return self
+
+    def Deal(self):
+        columns = []
+        n = 0
+        for c in COLUMNS:
+            columns.append( self.deck[n:n+c] )
+            columns[-1][-1].exposed = True
+            n += c
+        self.deck = self.deck[n:]
+        self.columns = columns
+
+    def FindTopOfSuit( self, col ):
+        col = self.columns[col]
+        s = col[-1].suit
+        n = len(col)-1
+        while n > 0:
+            n -= 1
+            if col[n].suit != s or not col[n].exposed:
+                return n+1
+        return 0
+
+    def IsMoveValid( self, fr, to ):
+        if fr is None or not self.columns[fr]:
+            return False
+        if not self.columns[to]:
+            return True
+        hi = self.FindTopOfSuit( fr )
+        if self.columns[fr][-1].suit == self.columns[to][-1].suit:
+            return self.columns[fr][-1].rank < self.columns[to][-1].rank and \
+                  (self.columns[fr][hi].rank >= self.columns[to][-1].rank - 1)
+        return self.columns[fr][hi].rank >= self.columns[to][-1].rank - 1
+
+    def MakeMove( self, fr, to ):
+        hi = self.FindTopOfSuit( fr )
+        if not self.columns[to]:
+            self.columns[to] = self.columns[fr][hi:]
+            self.columns[fr] = self.columns[fr][:hi]
+        else:
+            if self.columns[fr][hi].suit == self.columns[to][-1].suit:
+                while self.columns[fr][hi].rank >= self.columns[to][-1].rank:
+                    hi += 1
+            self.columns[to].extend( self.columns[fr][hi:] )
+            self.columns[fr] = self.columns[fr][:hi]
+        if self.columns[fr]:
+            self.columns[fr][-1].exposed = True
+
+    def AddCard( self, col, card ):
+        self.columns[col].append( card )
+        card.exposed = True
+
+    def IsRemoveValid( self, col ):
+        if not self.columns[col]:
+            return False
+        hi = self.FindTopOfSuit( col )
+        return self.columns[col][-1].rank == 12 and self.columns[col][hi] == 0
+
+    def RemoveSuit( self, col ):
+        hi = self.FindTopOfSuit(col)
+        self.columns[col] = self.columns[col][:hi]
+
+    def DisplayColumn( self, col ):
+        ClearColumn( col )
+        DisplayColumnNumber( col, col==self.highlight )
+        for y, c in enumerate( self.columns[col] ):
+            DisplayCard( c, col, y )
+        print()
+
+    def DisplayLayout(self):
+        for i in range(10):
+            self.DisplayColumn( i )
+
+    def IsHighlight(self):
+        return self.highlight is not None
+
+    def SetHighlight(self,value=None):
+        self.highlight = value
+
+    def ClearHighlight(self):
+        self.highlight = None
 
 
-def MakeMove( columns, fr, to ):
-    hi = FindTopOfSuit( columns, fr )
-    if not columns[to]:
-        columns[to] = columns[fr][hi:]
-        columns[fr] = columns[fr][:hi]
-    else:
-        if columns[fr][hi].suit == columns[to][-1].suit:
-            while columns[fr][hi].rank >= columns[to][-1].rank:
-                hi += 1
-        columns[to].extend( columns[fr][hi:] )
-        columns[fr] = columns[fr][:hi]
-    if columns[fr]:
-        columns[fr][-1].exposed = True
-
-def AddCard( columns, col, card ):
-    columns[col].append( card )
-    card.exposed = True
-
-
-def IsRemoveValid( columns, col ):
-    if not columns[col]:
-        return False
-    hi = FindTopOfSuit( columns, col )
-    return columns[col][-1].rank == 12 and columns[col][hi] == 0
-
-
-
-def RemoveSuit( columns, col ):
-    hi = FindTopOfSuit(col)
-    columns[col] = columns[col][:hi]
-
-
-def DisplayColumn( columns, col ):
-    ClearColumn( col )
-    DisplayColumnNumber( col, col==highlight )
-    for y, c in enumerate( columns[col] ):
-        DisplayCard( c, col, y )
-    print()
-
-
-def DisplayLayout(columns):
-    for i in range(10):
-        DisplayColumn( columns, i )
-
-
-def ProcessCommand( deck, columns, ch ):
-    global highlight
+def ProcessCommand( table, ch ):
     global Deals
     global SuitsRemoved
     if ch.isdigit():
         ch = int(ch)
         # If a column is highlighted, attemt a move.  If not, highlight it.
-        if highlight is not None:
-            if IsMoveValid( columns, highlight, ch ):
-                MakeMove( columns, highlight, ch )
-                DisplayColumn( columns, highlight )
-                DisplayColumn( columns, ch )
-                highlight = None
+        if table.IsHighlight():
+            if table.IsMoveValid( table.highlight, ch ):
+                table.MakeMove( table.highlight, ch )
+                table.DisplayColumn( table.highlight )
+                table.DisplayColumn( ch )
+                table.ClearHighlight()
             else:
                 DisplayError( "That move won't work." )
                 DisplayColumnNumber( highlight )
-                highlight = None
+                table.ClearHighlight()
         else:
-            highlight = ch
-            DisplayColumnNumber( highlight, True )
+            table.SetHighlight(ch)
+            DisplayColumnNumber( table.highlight, True )
 
     elif not ch:
         pass
@@ -258,11 +267,11 @@ def ProcessCommand( deck, columns, ch ):
     elif ch in 'Dd':    # Deal again
         if Deals:
             Deals -= 1
-            highlight = None
+            table.ClearHighlight()
             UpdateDeals()
             for i in range(10):
-                AddCard( columns, i, deck.pop(0) )
-                DisplayColumn(columns, i)
+                table.AddCard( i, deck.pop(0) )
+                table.DisplayColumn(i)
 
     elif ch in 'Rr':    # Remove a suit
         if highlight is None:
@@ -270,37 +279,36 @@ def ProcessCommand( deck, columns, ch ):
         elif not IsRemoveValid(columns, highlight):
             DisplayError( "Not a whole suit." )
         else:
-            RemoveSuit( columns, highlight )
-            DisplayColumn( columns, highlight )
-            highlight = None
+            table.RemoveSuit( highlight )
+            table.DisplayColumn( highlight )
+            table.ClearHighlight()
             SuitsRemoved += 1
             if SuitsRemoved == 8:
                 return False
             UpdateDeals()
 
     elif ch == '?': # Refresh
-        DisplayLayout(columns)
+        table.DisplayLayout()
         UpdateDeals()
 
     elif ch in 'Xx':    # Cancel highlight -- should be escape
-        if highlight is not None:
-            DisplayColumnNumber( highlight, False )
-            highlight = None
+        if table.IsHighlight():
+            DisplayColumnNumber( table.highlight, False )
+            table.ClearHighlight()
 
     return True
 
 def main():
-    deck = SetupDeck()
-    Shuffle(deck)
-    deck, columns = Deal(deck)
+    game = Table()
+    game.SetupDeck().Shuffle().Deal()
 
-    DisplayLayout (columns)
+    game.DisplayLayout()
     UpdateDeals ()
 
     while 1:
         ch = input( ">>> " )
         DisplayError("")
-        if not ProcessCommand(deck, columns, ch):
+        if not ProcessCommand(game, ch):
             break
 
     if SuitsRemoved == 8:
