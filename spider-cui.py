@@ -1,6 +1,7 @@
 import os
 import sys
 import random
+import curses
 
 class Card:
     suit: int
@@ -19,124 +20,51 @@ RED = '\x1b[1;31m'
 
 # HEREIN should be encapsulated all of the platform-specific stuff.
 
-#// For Microsoft C++.
-
-#define clrscr()	_clearscreen (_GCLEARSCREEN)
-#define gotoxy(x,y)	_settextposition(y,x)
-#define	textbackground(k)	_setbkcolor(k)
-#define	textcolor (k)		_settextcolor(k)
-
 card1 = "         1   ";
 card2 = "A234567890JQK";
-suit  = "SHDC"
 suit = [ "\u2660", RED+"\u2665"+BLACK, RED+"\u2666"+BLACK, "\u2663" ]
 suit = ["S", RED+"H"+BLACK, RED+"D"+BLACK, "C"]
+suit  = "SHDC"
 
-#define X0	5
-#define DX	5
-#define Y0	4
-#define	DY	1
+X0 = 5
+DX = 5
+Y0 = 8
+DY = 1
 
-#define MSG_X	55
-#define MSG_Y	5
-#define STAT_Y	7
-#define ERR_Y	9
+MSG_X = 55
+MSG_Y = 2
+STAT_Y = 7
+ERR_Y = 3
 
 
-
-## void
-## ClearColumn (BYTE col)
-## {
-##     textbackground (BLUE);
-##     window (X0 + col*DX, Y0, X0 + (col+1)*DX - 1, Y0 + 20 * DY);
-##     clrscr ();
-##     window (1, 1, 80, 25);
-## }
-## 
-## 
-## void
-## DisplayCard (Card * c, BYTE x, BYTE y)
-## {
-##     gotoxy (X0 + x * DX, Y0 + y * DY);
-##     if (c->exposed)
-##     {
-## 	textcolor (scol [c->suit]);
-## 	textbackground (WHITE);
-## 	putch (card1 [c->rank]);
-## 	putch (card2 [c->rank]);
-## 	putch (suit [c->suit]);
-##     }
-##     else
-##     {
-## 	textcolor (BLACK);
-## 	textbackground (WHITE);
-## 	cputs ("+++");
-##     }
-## }
-## 
-## 
-## void
-## DisplayColumnNumber (BYTE col, BOOL intense = FALSE)
-## {
-##     gotoxy (X0 + col * DX + 1, Y0 - DY - DY);
-##     textcolor (intense ? RED : WHITE);
-##     textbackground (BLUE);
-##     putch (col + '0');
-## 
-##     gotoxy (X0 + col * DX, Y0 - DY);
-##     textcolor (WHITE);
-##     cputs ("===");
-## }
-## 
-## 
-## void
-## DisplayError (char * s)
-## {
-##     gotoxy (MSG_X, ERR_Y);
-##     textbackground (BLUE);
-##     textcolor (WHITE);
-##     clreol ();
-##     cputs (s);
-## }
-## 
-## 
-## void
-## UpdateDeals ()
-## {
-##     char str [80];
-## 
-##     gotoxy (MSG_X, MSG_Y);
-##     textbackground (BLUE);
-##     textcolor (WHITE);
-##     clreol ();
-##     sprintf (str, "%d deals remaining.", deals);
-##     cputs (str);
-## 
-##     if (SuitsRemoved)
-##     {
-##         gotoxy (MSG_X, STAT_Y);
-##         sprintf (str, "%d suits removed.", SuitsRemoved);
-## 	cputs (str);
-##     }
-## }
 
 def ClearColumn(col):
-    pass
-#    print()
+    for row in range(-2,15):
+        stdscr.move( Y0+row, X0+col*DX )
+        stdscr.addstr( " "*DX )
+
 def DisplayColumnNumber(col, highlight=False):
+    stdscr.move( Y0-DY-DY, X0+col*DX )
     if highlight:
-        print( f'({col}) ', end='')
+        stdscr.addstr( f'({col})' )
     else:
-        print( f' {col}  ', end='')
-def DisplayCard( card, col, y ):
-    print( '   '+card1[card.rank]+card2[card.rank]+suit[card.suit], end='' )
+        stdscr.addstr( f' {col} ' )
+
+def DisplayCard( card, col, row ):
+    stdscr.move( Y0+row, X0+col*DX )
+    stdscr.addstr( card1[card.rank]+card2[card.rank]+suit[card.suit] )
+
 def DisplayError( err ):
-    if err:
-        print(err)
+    stdscr.move( ERR_Y, MSG_X )
+    stdscr.clrtoeol()
+    stdscr.addstr( err )
+
 def UpdateDeals():
-    print( f"\n {Deals} deals remaining." )
+    stdscr.move( MSG_Y, MSG_X )
+    stdscr.addstr( f"\n {Deals} deals remaining." )
     if SuitsRemoved:
-        print( f" {SuitsRemoved} suits removed." )
+        stdscr.move( STAT_Y, MSG_X )
+        stdscr.addstr( f" {SuitsRemoved} suits removed." )
 
 #// END platform-specific stuff
 
@@ -222,7 +150,6 @@ class Table:
         DisplayColumnNumber( col, col==self.highlight )
         for y, c in enumerate( self.columns[col] ):
             DisplayCard( c, col, y )
-        print()
 
     def DisplayLayout(self):
         for i in range(10):
@@ -245,15 +172,16 @@ def ProcessCommand( table, ch ):
         ch = int(ch)
         # If a column is highlighted, attemt a move.  If not, highlight it.
         if table.IsHighlight():
+            h = table.highlight
             if table.IsMoveValid( table.highlight, ch ):
                 table.MakeMove( table.highlight, ch )
-                table.DisplayColumn( table.highlight )
-                table.DisplayColumn( ch )
                 table.ClearHighlight()
+                table.DisplayColumn( h )
+                table.DisplayColumn( ch )
             else:
                 DisplayError( "That move won't work." )
-                DisplayColumnNumber( highlight )
                 table.ClearHighlight()
+                DisplayColumnNumber( h )
         else:
             table.SetHighlight(ch)
             DisplayColumnNumber( table.highlight, True )
@@ -274,14 +202,15 @@ def ProcessCommand( table, ch ):
                 table.DisplayColumn(i)
 
     elif ch in 'Rr':    # Remove a suit
-        if highlight is None:
+        if not table.IsHighlight():
             DisplayError( "No column selected." )
-        elif not IsRemoveValid(columns, highlight):
+        elif not IsRemoveValid(columns, table.highlight):
             DisplayError( "Not a whole suit." )
         else:
-            table.RemoveSuit( highlight )
-            table.DisplayColumn( highlight )
+            h = table.highlight
+            table.RemoveSuit( table.highlight )
             table.ClearHighlight()
+            table.DisplayColumn( h )
             SuitsRemoved += 1
             if SuitsRemoved == 8:
                 return False
@@ -298,7 +227,12 @@ def ProcessCommand( table, ch ):
 
     return True
 
-def main():
+def main(screen):
+    global stdscr
+    stdscr = screen
+    curses.start_color()
+    stdscr.clear()
+
     game = Table()
     game.SetupDeck().Shuffle().Deal()
 
@@ -306,10 +240,16 @@ def main():
     UpdateDeals ()
 
     while 1:
-        ch = input( ">>> " )
+        stdscr.refresh()
+        ch = stdscr.getkey()
         DisplayError("")
         if not ProcessCommand(game, ch):
             break
+
+    return 0
+
+if __name__ == "__main__":
+    curses.wrapper(main)
 
     if SuitsRemoved == 8:
         print ("*********************************************")
@@ -317,8 +257,3 @@ def main():
         print ("*        Y O U   W I N   ! ! ! ! ! ! !      *")
         print ("*                                           *")
         print ("*********************************************")
-
-    return 0
-
-if __name__ == "__main__":
-    main()
