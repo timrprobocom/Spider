@@ -15,6 +15,8 @@ Deals = 3
 SuitsRemoved = 0
 highlight = None
 
+BLACK = '\x1b[0;30m'
+RED = '\x1b[1;31m'
 
 # HEREIN should be encapsulated all of the platform-specific stuff.
 
@@ -27,8 +29,9 @@ highlight = None
 
 card1 = "         1   ";
 card2 = "A234567890JQK";
-suit  = "SHDC"  # Should use Unicode chars
-#scolor = [BLACK, RED, RED, BLACK]
+suit  = "SHDC"
+suit = [ "\u2660", RED+"\u2665"+BLACK, RED+"\u2666"+BLACK, "\u2663" ]
+suit = ["S", RED+"H"+BLACK, RED+"D"+BLACK, "C"]
 
 #define X0	5
 #define DX	5
