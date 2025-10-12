@@ -1,3 +1,5 @@
+#! /usr/bin/env python3
+
 import os
 import sys
 import random
@@ -131,6 +133,9 @@ class Table:
         if self.columns[fr]:
             self.columns[fr][-1].exposed = True
 
+    def DealOneCard( self, col ):
+        self.AddCard( col, self.deck.pop(0) )
+
     def AddCard( self, col, card ):
         self.columns[col].append( card )
         card.exposed = True
@@ -198,7 +203,7 @@ def ProcessCommand( table, ch ):
             table.ClearHighlight()
             UpdateDeals()
             for i in range(10):
-                table.AddCard( i, deck.pop(0) )
+                table.DealOneCard( i )
                 table.DisplayColumn(i)
 
     elif ch in 'Rr':    # Remove a suit
