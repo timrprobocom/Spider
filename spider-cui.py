@@ -101,10 +101,12 @@ class Table:
     def FindTopOfSuit( self, col ):
         col = self.columns[col]
         s = col[-1].suit
+        r = col[-1].rank
         n = len(col)-1
         while n > 0:
             n -= 1
-            if col[n].suit != s or not col[n].exposed:
+            r -= 1
+            if col[n].suit != s or col[n].rank != r or not col[n].exposed:
                 return n+1
         return 0
 
