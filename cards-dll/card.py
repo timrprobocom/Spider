@@ -10,8 +10,7 @@ suits = 'clubs diamonds hearts spades'.split()
 def get_card( suit, idx ):
     pfx = 'PNG-cards-1.3'
     name = f"{pfx}/{names[idx]}_of_{suits[suit]}.png"
-    data = io.BytesIO( cards.read(name) )
-    return Image.open(data)
+    return Image.open(cards.open(name))
 
 x = random.randrange(0,13)
 y = random.randrange(0,4)
