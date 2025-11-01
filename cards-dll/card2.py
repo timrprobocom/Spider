@@ -76,7 +76,7 @@ cardim = get_all_cards()
 
 # I need a data structure that describes the card with a reference to the image.
 
-iw, ih = cardim[0].get_size()
+cardsize = Size(*cardim[0].get_size())
 
 buttons = []
 x,y = BUTTONS
@@ -93,12 +93,12 @@ while running:
 
     for col in range(10):
         for row in range(8):
-            x = GRID[0] + (iw+5)*col
+            x = GRID[0] + (cardsize.x+5)*col
             y = GRID[1] + row*40
             image = get_random_card()
-            screen.blit( image, (x, y, iw, ih) )
+            screen.blit( image, (x, y, cardsize.x, cardsize.y) )
 
-    pygame.display.flip()
+    pygame.display.update()  # Why not flip?
 
     while True:
         event = pygame.event.wait()
@@ -116,9 +116,6 @@ while running:
             for b in buttons:
                 if b.contains(Point(*event.pos)):
                     running = False
-#            if BUTTONS[0] <= event.pos[0] <= BUTTONS[0]+BTNSIZE[0]*2 and \
-#                BUTTONS[1] <= event.pos[1] <= BUTTONS[1]+BTNSIZE[1]:
-#                running = False
             break
 
 pygame.quit()
