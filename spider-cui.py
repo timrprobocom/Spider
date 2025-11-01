@@ -116,13 +116,21 @@ class Table:
         if not self.columns[to]:
             return True
         hi = self.FindTopOfSuit( fr )
-        if self.columns[fr][-1].suit == self.columns[to][-1].suit:
-            return self.columns[fr][-1].rank < self.columns[to][-1].rank and \
-                  (self.columns[fr][hi].rank >= self.columns[to][-1].rank - 1)
-        return self.columns[fr][hi].rank >= self.columns[to][-1].rank - 1
+        fr = self.columns[fr]
+        to = self.columns[to]
+
+        if fr[hi].rank == to[-1].rank - 1:
+            return hi
+        if fr[hi].suit == to[-1].suit and fr[hi].rank > to[-1].rank > fr[hi].rank:
+            return to[-1].rank - fr[-1].rank
+        if fr[hi].rank == 12 and to[-1].rank == 0:
+            return hi
+        return -1
 
     def MakeMove( self, fr, to ):
-        hi = self.FindTopOfSuit( fr )
+        hi = self.IsMoveValid( fr, to )
+        if hi < 0:
+            return
         if not self.columns[to]:
             self.columns[to] = self.columns[fr][hi:]
             self.columns[fr] = self.columns[fr][:hi]
@@ -180,7 +188,7 @@ def ProcessCommand( table, ch ):
         # If a column is highlighted, attemt a move.  If not, highlight it.
         if table.IsHighlight():
             h = table.highlight
-            if table.IsMoveValid( table.highlight, ch ):
+            if table.IsMoveValid( table.highlight, ch ) >= 0:
                 table.MakeMove( table.highlight, ch )
                 table.ClearHighlight()
                 table.DisplayColumn( h )
