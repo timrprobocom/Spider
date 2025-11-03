@@ -1,0 +1,2 @@
+#! /bin/bash
+pyinstaller --onefile --add-data cards_png_zip.zip:. spider-pg.py

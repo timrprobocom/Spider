@@ -1,3 +1,6 @@
+#! /usr/bin/env python3
+
+import os
 import random
 import zipfile
 import pygame
@@ -51,7 +54,8 @@ factor = 0.2
 
 class CardZip:
     def __init__(self):
-        self.cards = zipfile.ZipFile(CARDZIP)
+        we = os.path.dirname(__file__)
+        self.cards = zipfile.ZipFile(we+"/"+CARDZIP)
 
     def get_card_image( self, name ):
         card = Image.open(self.cards.open(name))
