@@ -39,7 +39,7 @@ BTNSIZE = Size(120,40)
 GRID = Point(60,200)
 
 STAT = Point(60,100)
-MSG = Point(560,100)
+MSG = Point(640,100)
 
 
 CARDZIP = 'PNG-cards-1.3.zip'
@@ -166,7 +166,8 @@ class Table:
         if not self.columns[col]:
             return False
         hi = self.FindTopOfSuit( col )
-        return self.columns[col][-1].rank == 12 and self.columns[col][hi] == 0
+        col = self.columns[col]
+        return col[-1].rank == 0 and col[hi].rank == 12
 
     def RemoveSuit( self, col ):
         hi = self.FindTopOfSuit(col)
@@ -247,7 +248,7 @@ for b in ("Deal", "Remove", "Clear", "Quit"):
     buttons.append( Button( b, Point(x,y) ) )
     x += BTNSIZE.x + 5
 
-error = ''
+error = 'Version 1.0'
 running = True
 while running:
 
@@ -284,7 +285,7 @@ while running:
 
     msg = f"{Deals} deals remaining."
     if SuitsRemoved:
-        msg = f"   {SuitsRemoved} suits removed."
+        msg += f"   {SuitsRemoved} suits removed."
     txt = btnfont.render( msg, True, (255,255,255) )
     screen.blit( txt, STAT )
 
@@ -341,12 +342,15 @@ while running:
             break
         elif action == 'r':
             if not game.IsHighlight():
+                error = "No column highlighted"
                 break
-            if game.IsRemoveValid(game.highlight):
-                game.RemoveSuit(highlight)
-                SuitsRemoved += 1
+            if not game.IsRemoveValid(game.highlight):
+                error = "Cannot remove that column"
+                break
+            game.RemoveSuit(game.highlight)
             game.ClearHighlight()
-            if SuitsRemoved == 4:
+            SuitsRemoved += 1
+            if SuitsRemoved == 8:
                 error = "YOU WIN!!!"
             break
 
