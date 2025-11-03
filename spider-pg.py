@@ -35,7 +35,7 @@ Size = namedtuple("Size", ['x','y'])
 
 
 BUTTONS = Point(60,20)
-BTNSIZE = Size(100,40)
+BTNSIZE = Size(120,40)
 GRID = Point(60,200)
 
 STAT = Point(60,100)
@@ -118,9 +118,9 @@ class Table:
     def IsMoveValid( self, fr, to ):
         if fr is None or not self.columns[fr]:
             return False
-        if not self.columns[to]:
-            return True
         hi = self.FindTopOfSuit( fr )
+        if not self.columns[to]:
+            return hi
 #        print(fr,to,hi,self.columns[fr][hi],self.columns[to][-1])
         fr = self.columns[fr]
         to = self.columns[to]
@@ -131,8 +131,8 @@ class Table:
         # REMEMBER you can move part of a long suit.  So, given 6 5 4 3 spades,
         # I can move the 4 to a 5 spades.
 
-        if fr[hi].suit == to[-1].suit and fr[hi].rank > to[-1].rank > fr[hi].rank:
-            return to[-1].rank - fr[-1].rank
+        if fr[hi].suit == to[-1].suit and fr[hi].rank >= to[-1].rank > fr[-1].rank:
+            return len(fr) - (to[-1].rank - fr[-1].rank)
 
         #  This is a cheat: you can move a column headed by a king to any ace.
 
@@ -340,12 +340,12 @@ while running:
                     game.DealOneCard( i )
             break
         elif action == 'r':
-            if not table.IsHighlight():
+            if not game.IsHighlight():
                 break
-            if table.IsRemoveValid(table.highlight):
-                table.RemoveSuit(highlight)
+            if game.IsRemoveValid(game.highlight):
+                game.RemoveSuit(highlight)
                 SuitsRemoved += 1
-            table.ClearHighlight()
+            game.ClearHighlight()
             if SuitsRemoved == 4:
                 error = "YOU WIN!!!"
             break

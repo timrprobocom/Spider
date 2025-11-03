@@ -14,7 +14,10 @@ class Card:
         self.rank = rank
         self.exposed = False
 
+COLUMNS = [8, 7, 7, 8, 7, 7, 8, 7, 7, 8]
 Deals = 3
+COLUMNS = [5, 4, 4, 5, 4, 4, 5, 4, 4, 5]
+Deals = 6
 SuitsRemoved = 0
 
 BLACK = '\x1b[0;30m'
@@ -54,7 +57,10 @@ def DisplayColumnNumber(col, highlight=False):
 
 def DisplayCard( card, col, row ):
     stdscr.move( Y0+row, X0+col*DX )
-    stdscr.addstr( card1[card.rank]+card2[card.rank]+suit[card.suit] )
+    if card.exposed:
+        stdscr.addstr( card1[card.rank]+card2[card.rank]+suit[card.suit] )
+    else:
+        stdscr.addstr( "---" )
 
 def DisplayError( err ):
     stdscr.move( ERR_Y, MSG_X )
@@ -69,8 +75,6 @@ def UpdateDeals():
         stdscr.addstr( f" {SuitsRemoved} suits removed." )
 
 #// END platform-specific stuff
-
-COLUMNS = [8, 7, 7, 8, 7, 7, 8, 7, 7, 8]
 
 class Table:
     deck = []
@@ -121,8 +125,8 @@ class Table:
 
         if fr[hi].rank == to[-1].rank - 1:
             return hi
-        if fr[hi].suit == to[-1].suit and fr[hi].rank > to[-1].rank > fr[hi].rank:
-            return to[-1].rank - fr[-1].rank
+        if fr[hi].suit == to[-1].suit and fr[hi].rank >= to[-1].rank > fr[-1].rank:
+            return len(fr) - (to[-1].rank - fr[-1].rank)
         if fr[hi].rank == 12 and to[-1].rank == 0:
             return hi
         return -1
